@@ -1,5 +1,5 @@
 # Low-level access to changing Plasma settings.
-{ config, lib, pkgs, ... }:
+{ inputs, config, lib, pkgs, ... }:
 
 let
   inherit (import ../lib/kwriteconfig.nix { inherit lib pkgs; })
@@ -8,8 +8,8 @@ let
   # Helper function to prepend the appropriate path prefix (e.g. XDG_CONFIG_HOME) to file
   prependPath = prefix: attrset:
     lib.attrsets.mapAttrs'
-    (path: config: { name = "${prefix}/${path}"; value = config; })
-    attrset;
+      (path: config: { name = "${prefix}/${path}"; value = config; })
+      attrset;
   plasmaCfg = config.programs.plasma;
   cfg =
     (prependPath config.home.homeDirectory plasmaCfg.file) //
@@ -85,7 +85,7 @@ in
   ];
 
   config = lib.mkIf (builtins.length (builtins.attrNames cfg) > 0) {
-    home.activation.configure-plasma = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+    home.activation.configure-plasma = inputs.home-manager.lib.hm.dag.entryAfter [ "writeBoundary" ] ''
       $DRY_RUN_CMD ${script}
     '';
   };
